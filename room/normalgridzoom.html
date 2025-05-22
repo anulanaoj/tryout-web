@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zoomable Grid</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #f0f0f000;
+        }
+        .row-container {
+            display: flex;
+            flex-direction: row;
+            height: 50vh;
+            width: 100vw;
+            align-items: center;
+            justify-content: center;
+            background: transparent; /* Make row background transparent */
+        }
+        .grid-area {
+            width: 50vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            position: relative;
+            background: #f5f5f500;
+            overflow: visible;
+            z-index: 1;
+            transition: z-index 0.1s;
+            transform: none !important;
+        }
+        .grid {
+            display: grid;
+            grid-template-rows: repeat(5, auto);
+            grid-template-columns: repeat(4, auto);
+            gap: 0;
+            background: #ffffff00;
+            border: 1px solid #ffffff00;
+            transition: transform 0.2s;
+            margin: auto 0;
+        }
+        .grid#grid-bottomleft {
+            grid-template-rows: repeat(1, auto);
+            grid-template-columns: repeat(5, auto);
+        }
+        .cell {
+            background: #e0e7ef00;
+            border: 1px solid #b0b8c100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            padding: 4px;
+        }
+        .cell img {
+            display: block;
+            max-width: 100px;
+            max-height: 100px;
+            width: auto;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="row-container" id="row-top">
+            <div class="grid-area" id="area-topleft">
+                <div class="grid" id="grid-topleft"></div>
+            </div>
+        </div>
+        <div class="row-container" id="row-bottom">
+            <div class="grid-area" id="area-bottomleft">
+                <div class="grid" id="grid-bottomleft"></div>
+            </div>
+            <div class="grid-area" id="area-bottomright">
+                <div class="grid" id="grid-bottomright"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function createGrid(gridElement, images, rows = 5, cols = 4) {
+            let imgIndex = 0;
+            for (let r = 1; r <= rows; r++) {
+                for (let c = 1; c <= cols; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    const img = document.createElement('img');
+                    // Use provided image or fallback to placeholder
+                    img.src = images && images[imgIndex] ? images[imgIndex] : 'https://via.placeholder.com/80?text=' + r + ',' + c;
+                    img.alt = `${r},${c}`;
+                    cell.appendChild(img);
+                    gridElement.appendChild(cell);
+                    imgIndex++;
+                }
+            }
+        }
+
+        // Example: different images for each grid
+        const imagesTopLeft = [
+            '21.05.2025 room-01.jpg',
+            '21.05.2025 room-02.jpg',
+            '21.05.2025 room-03.jpg',
+            '21.05.2025 room-04.jpg',
+            '21.05.2025 room-05.jpg',
+            '21.05.2025 room-06.jpg',
+            '21.05.2025 room-07.jpg',
+            '21.05.2025 room-08.jpg',
+            '21.05.2025 room-09.jpg',
+            '21.05.2025 room-10.jpg',
+            '21.05.2025 room-11.jpg',
+            '21.05.2025 room-12.jpg',
+            '21.05.2025 room-13.jpg',
+            '21.05.2025 room-14.jpg',
+            '21.05.2025 room-15.jpg',
+            '21.05.2025 room-16.jpg',
+            '21.05.2025 room-17.jpg',
+            '21.05.2025 room-18.jpg',
+            '21.05.2025 room-19.jpg',
+            '21.05.2025 room-20.jpg'
+        ];
+        const imagesBottomLeft = [
+            '28.03.2024 room-1.jpg',
+            '28.03.2024 room-2.jpg',
+            '28.03.2024 room-3.jpg',
+            '28.03.2024 room-4.jpg',
+            '28.03.2024 room-5.jpg',
+        ];
+        const imagesBottomRight = [
+            '11.01.2024 room neck-01.jpg',
+            '11.01.2024 room neck-02.jpg',
+            '11.01.2024 room neck-03.jpg',
+            '11.01.2024 room neck-04.jpg',
+            '11.01.2024 room neck-05.jpg',
+            '11.01.2024 room neck-06.jpg',
+            '11.01.2024 room neck-07.jpg',
+            '11.01.2024 room neck-08.jpg',
+            '11.01.2024 room neck-09.jpg',
+            '11.01.2024 room neck-10.jpg',
+            '11.01.2024 room neck-11.jpg',
+            '11.01.2024 room neck-12.jpg',
+        ];
+
+        const gridTopLeft = document.getElementById('grid-topleft');
+        const gridBottomLeft = document.getElementById('grid-bottomleft');
+        const gridBottomRight = document.getElementById('grid-bottomright');
+        createGrid(gridTopLeft, imagesTopLeft); // 5x4
+        createGrid(gridBottomLeft, imagesBottomLeft, 1, 5); // 1x5
+        createGrid(gridBottomRight, imagesBottomRight, 3, 4); // 3x4
+
+        function addZoom(grid) {
+            let scale = 1;
+            const minScale = 0.5;
+            let maxScale = 2;
+
+            // Calculate max scale so grid does not exceed 100% of the visible screen height
+            function updateMaxScale() {
+                // Temporarily reset transform to get natural size
+                const prevTransform = grid.style.transform;
+                grid.style.transform = '';
+                const gridRect = grid.getBoundingClientRect();
+                const vh = window.innerHeight;
+                if (gridRect.height > 0) {
+                    maxScale = vh / gridRect.height;
+                    if (maxScale < 4) maxScale = 4;
+                } else {
+                    maxScale = 8;
+                }
+                grid.style.transform = prevTransform;
+            }
+
+            updateMaxScale();
+            window.addEventListener('resize', updateMaxScale);
+
+            let isDragging = false;
+            let startX = 0, startY = 0;
+            let lastX = 0, lastY = 0;
+            let translateX = 0, translateY = 0;
+
+            grid.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                updateMaxScale();
+                const delta = e.deltaY < 0 ? 0.05 : -0.05;
+                scale = Math.max(minScale, Math.min(maxScale, scale + delta));
+                grid.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+            });
+
+            grid.addEventListener('mousedown', (e) => {
+                if (scale === 1) return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                grid.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none';
+                grid.querySelectorAll('img').forEach(img => img.style.pointerEvents = 'none');
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                translateX = lastX + dx;
+                translateY = lastY + dy;
+                grid.style.transform = `scale(${scale}) translate(${translateX}px, ${translateY}px)`;
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    lastX = translateX;
+                    lastY = translateY;
+                    isDragging = false;
+                    grid.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    grid.querySelectorAll('img').forEach(img => img.style.pointerEvents = '');
+                }
+            });
+
+            function resetTranslationIfNeeded() {
+                if (scale === 1) {
+                    translateX = 0;
+                    translateY = 0;
+                    lastX = 0;
+                    lastY = 0;
+                    grid.style.transform = `scale(1)`;
+                }
+            }
+
+            grid.addEventListener('wheel', resetTranslationIfNeeded);
+        }
+        addZoom(gridTopLeft);
+        addZoom(gridBottomLeft);
+        addZoom(gridBottomRight);
+
+        // Utility to make a grid-area draggable and bring to front on drag
+        function makeDraggable(area) {
+            let isDragging = false;
+            let startX = 0, startY = 0;
+            let origX = 0, origY = 0;
+
+            area.addEventListener('mousedown', function(e) {
+                // Only drag if not clicking inside a grid cell (to not interfere with grid panning)
+                if (e.target.closest('.grid')) {
+                    return;
+                }
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                // Get current transform
+                origX = area.offsetLeft;
+                origY = area.offsetTop;
+                // Bring to front
+                area.style.zIndex = 10;
+                area.style.cursor = 'move';
+                area.style.position = 'absolute';
+                area.style.left = origX + 'px';
+                area.style.top = origY + 'px';
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                area.style.left = (origX + dx) + 'px';
+                area.style.top = (origY + dy) + 'px';
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    area.style.cursor = '';
+                    setTimeout(() => { area.style.zIndex = 1; }, 100);
+                }
+            });
+        }
+
+        // Make all grid-areas draggable and able to be brought to front
+        makeDraggable(document.getElementById('area-topleft'));
+        makeDraggable(document.getElementById('area-bottomleft'));
+        makeDraggable(document.getElementById('area-bottomright'));
+    </script>
+</body>
+</html>
