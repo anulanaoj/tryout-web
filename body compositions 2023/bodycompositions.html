@@ -114,17 +114,44 @@
         const vw = window.innerWidth, vh = window.innerHeight;
         const imgWidth = vw * 0.10, imgHeight = 280 * (imgWidth / 200); // maintain placeholder aspect ratio
 
-        // Align images in a grid at the top (below fixed text)
-        function gridPosition(idx, perRow = 10) {
-            const margin = 10;
+        // Align images in a random grid at the top (below fixed text), without overlaying
+        function getRandomNonOverlappingPositions(imageCount, perRow = 10) {
+            const positions = [];
             const imgW = vw * 0.05;
-            const x = margin + (idx % perRow) * (imgW + margin);
-            const y = 80 + Math.floor(idx / perRow) * (imgW + margin); // 80px below fixed text
-            return [x, y];
+            const imgH = imgW; // assume square for simplicity
+            const margin = 10;
+            const maxAttempts = 1000;
+            for (let idx = 0; idx < imageCount; idx++) {
+                let attempt = 0, found = false, x, y;
+                while (attempt < maxAttempts && !found) {
+                    x = Math.random() * (vw - imgW - margin * 2) + margin;
+                    y = 80 + Math.random() * (vh - imgH - 80 - margin * 2);
+                    found = true;
+                    for (let j = 0; j < positions.length; j++) {
+                        const [px, py] = positions[j];
+                        // Check for overlap (with margin)
+                        if (
+                            x < px + imgW + margin &&
+                            x + imgW + margin > px &&
+                            y < py + imgH + margin &&
+                            y + imgH + margin > py
+                        ) {
+                            found = false;
+                            break;
+                        }
+                    }
+                    attempt++;
+                }
+                positions.push([x, y]);
+            }
+            return positions;
         }
 
         // Store per-image scale
         const imageScales = [];
+
+        // Generate random non-overlapping positions
+        const randomPositions = getRandomNonOverlappingPositions(images.length);
 
         // Create and position images
         images.forEach((src, idx) => {
@@ -133,7 +160,7 @@
             img.alt = `Image ${idx+1}`;
             img.className = 'draggable-img';
             img.setAttribute('draggable', 'false');
-            const [x, y] = gridPosition(idx);
+            const [x, y] = randomPositions[idx];
             img.style.left = x + 'px';
             img.style.top = y + 'px';
             img.dataset.idx = idx;
