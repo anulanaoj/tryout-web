@@ -193,7 +193,13 @@
         function onPointerUp(e) {
             if (draggingImg) {
                 draggingImg.classList.remove('dragging');
-                draggingImg.style.zIndex = 1;
+                // Find the highest z-index among all images
+                let maxZ = 1;
+                document.querySelectorAll('.draggable-img').forEach(img => {
+                    const z = parseInt(img.style.zIndex) || 1;
+                    if (z > maxZ) maxZ = z;
+                });
+                draggingImg.style.zIndex = maxZ + 1;
                 draggingImg = null;
             }
         }
