@@ -136,7 +136,7 @@ body {
 }
 
 #side-text {
-  position: fixed;
+  position: absolute;
   left: calc(35vw + 20vw + 20px);
   top: 50%;
   transform: translateY(-50%);
