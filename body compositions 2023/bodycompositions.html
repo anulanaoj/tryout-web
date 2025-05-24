@@ -112,35 +112,39 @@
 
         const container = document.getElementById('image-container');
         const vw = window.innerWidth, vh = window.innerHeight;
-        const imgWidth = vw * 0.10, imgHeight = 280 * (imgWidth / 200); // maintain placeholder aspect ratio
+        const imgWidth = vw * 0.05;
+        const imgHeight = imgWidth; // assume square for simplicity
 
         // Align images in a random grid at the top (below fixed text), without overlaying
         function getRandomNonOverlappingPositions(imageCount, perRow = 10) {
             const positions = [];
-            const imgW = vw * 0.05;
-            const imgH = imgW; // assume square for simplicity
             const margin = 10;
-            const maxAttempts = 1000;
+            const maxAttempts = 2000;
             for (let idx = 0; idx < imageCount; idx++) {
                 let attempt = 0, found = false, x, y;
                 while (attempt < maxAttempts && !found) {
-                    x = Math.random() * (vw - imgW - margin * 2) + margin;
-                    y = 80 + Math.random() * (vh - imgH - 80 - margin * 2);
+                    x = Math.random() * (vw - imgWidth - margin * 2) + margin;
+                    y = 80 + Math.random() * (vh - imgHeight - 80 - margin * 2);
                     found = true;
                     for (let j = 0; j < positions.length; j++) {
                         const [px, py] = positions[j];
                         // Check for overlap (with margin)
                         if (
-                            x < px + imgW + margin &&
-                            x + imgW + margin > px &&
-                            y < py + imgH + margin &&
-                            y + imgH + margin > py
+                            x < px + imgWidth + margin &&
+                            x + imgWidth + margin > px &&
+                            y < py + imgHeight + margin &&
+                            y + imgHeight + margin > py
                         ) {
                             found = false;
                             break;
                         }
                     }
                     attempt++;
+                }
+                // If not found after maxAttempts, just stack at the bottom
+                if (!found) {
+                    x = margin + (idx % perRow) * (imgWidth + margin);
+                    y = 80 + Math.floor(idx / perRow) * (imgHeight + margin);
                 }
                 positions.push([x, y]);
             }
@@ -152,6 +156,9 @@
 
         // Generate random non-overlapping positions
         const randomPositions = getRandomNonOverlappingPositions(images.length);
+
+        // Remove all images before adding (avoid duplicates on reload)
+        container.innerHTML = "";
 
         // Create and position images
         images.forEach((src, idx) => {

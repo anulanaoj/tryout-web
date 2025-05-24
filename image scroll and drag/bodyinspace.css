@@ -1,0 +1,131 @@
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-y: scroll;
+  font-family: sans-serif;
+}
+
+#image-column {
+  width: 20vw;
+  min-width: 120px;
+  max-width: 400px;
+  height: 80vh; /* changed from 100vh */
+  overflow-y: auto;
+  position: fixed;
+  left: 35vw; /* changed from 20vw */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+  z-index: 1;
+  scrollbar-gutter: stable both-edges;
+  padding-right: 20vw;
+  box-sizing: content-box;
+}
+
+#image-column img {
+  width: 90%;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+#fullscreen-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  z-index: 10;
+  background: #fff !important; /* set background to completely white */
+}
+
+#fullscreen-overlay.hidden {
+  display: none;
+}
+
+#fullscreen-content {
+  margin-top: 30px;
+  margin-left: 30vw;
+  width: 80vw;
+  max-width: 1200px;
+  height: 80vh;
+  display: flex;
+  flex-direction: column; /* vertical layout */
+  align-items: center;
+  position: relative;
+  overflow-y: auto; /* vertical scroll */
+  overflow-x: hidden;
+  gap: 24px;
+  padding: 0 0 16px 0;
+  scrollbar-width: none; /* hide scrollbar (Firefox) */
+}
+
+/* Hide scrollbar (Webkit browsers) */
+#fullscreen-content::-webkit-scrollbar {
+  display: none;
+}
+
+#fullscreen-img {
+  display: none; /* hide single fullscreen image */
+}
+
+.fullscreen-gallery-img {
+  width: 80vw;
+  max-width: 1200px;
+  max-height: 80vh;
+  background: #22222200;
+  cursor: pointer;
+  flex-shrink: 0;
+  /* Remove any default outline or border */
+  outline: none;
+  border: none;
+  box-shadow: none;
+  transition: box-shadow 0.2s;
+}
+
+/* Only show red box-shadow on hover */
+.fullscreen-gallery-img:hover {
+  box-shadow: 0 8px 40px #f42020;
+}
+
+.arrow {
+  display: none !important;
+}
+
+@media (max-width: 700px) {
+  #image-column {
+    width: 30vw;
+    min-width: 80px;
+  }
+  #fullscreen-content, #fullscreen-img {
+    width: 98vw;
+    max-width: 98vw;
+  }
+}
+
+/* For a more robust cross-browser solution, use a pseudo-element to fake the scrollbar position: */
+#image-column {
+  padding-right: 20vw; /* add space for the fake scrollbar */
+  box-sizing: content-box;
+  position: fixed;
+  left: 20vw;
+}
+
+#image-column::-webkit-scrollbar {
+  width: 12px;
+  background: transparent;
+  margin-left: 20vw;
+}
+
+#image-column::-webkit-scrollbar-thumb {
+  background: #88888800;
+  border-radius: 6px;
+}
+
+#image-column::-webkit-scrollbar-track {
+  background: #22222200;
+}
