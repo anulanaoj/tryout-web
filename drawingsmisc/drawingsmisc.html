@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>misc. drawings 20204</title>
+    <title>Drawings Misc</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        /* ...existing CSS from drawings.css... */
         html, body {
             margin: 0;
             padding: 0;
@@ -26,14 +28,14 @@
             pointer-events: none;
         }
         .image-container {
-            position: absolute;
+            position: relative;
             top: 0; left: 0; width: 100vw; height: 100vh;
             overflow: visible;
             touch-action: none;
         }
         .draggable-img {
-            position: absolute;
-            width: 5.5vw; /* 10% bigger than 5vw */
+            position: relative;
+            width: 180px; /* Increased from 20vw to 180px */
             height: auto;
             cursor: grab;
             touch-action: none;
@@ -43,16 +45,71 @@
         .draggable-img.dragging {
             z-index: 1000;
         }
+        /* Accessible and responsive for small screens */
+        @media (max-width: 600px), (max-device-width: 600px) {
+            .draggable-img {
+                width: 98% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                left: unset !important;
+                top: unset !important;
+                position: static !important;
+                margin: 1vw 0;
+                touch-action: manipulation !important;
+            }
+            .fixed-text {
+                left: 0;
+                width: 100vw;
+                font-size: 1em;
+                height: auto;
+                min-height: 48px;
+                padding: 8px 0;
+                background: #fff;
+                z-index: 100;
+            }
+            .image-container {
+                width: 100% !important;
+                height: auto !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: nowrap !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                gap: 0 !important;
+                padding-top: 70px;
+                overflow-y: auto !important;
+                touch-action: manipulation !important;
+            }
+        }
+        @media (max-width: 600px), (max-device-width: 600px) {
+            .draggable-img {
+                width: 100vw !important;
+                max-width: 100vw !important;
+                margin: 1vw 0;
+            }
+            .fixed-text {
+                font-size: 0.9em;
+                min-height: 36px;
+            }
+            .image-container {
+                gap: 1vw !important;
+            }
+        }
+        /* Make images larger on small screens */
+        @media (max-width: 600px) {
+          .draggable-img {
+            width: 90vw;
+            height: auto;
+          }
+          .image-container {
+            padding: 10px;
+          }
+        }
     </style>
 </head>
 <body>
-    <div class="fixed-text" aria-label="Information text">misc. drawings 2024
-    </div>
-    <div id="background-zoom" style="position:absolute;top:0;left:0;width:100vw;height:100vh;overflow:visible;z-index:0; background:#fff;">
-        <div style="position:absolute;top:70px;left:50%;transform:translateX(-50%);font-size:2em;font-family:sans-serif;color:#222;pointer-events:none;z-index:10;">
-        </div>
-        <div class="image-container" id="image-container"></div>
-    </div>
+    <div class="fixed-text">drawings misc. 2024</div>
+    <div id="image-container" class="image-container" style="visibility:hidden"></div>
     <script>
         // Generate image filenames for 2024onpaper-01 to 2024onpaper-45
         const images = [];
@@ -74,18 +131,32 @@
         const vw = window.innerWidth, vh = window.innerHeight;
 
         // Align images in a grid at the top (below fixed text)
-        function gridPosition(idx, perRow = 10) {
-            // Calculate margin so that 10 images + 11 margins fill 100vw
-            const imgW = vw * 0.055; // 5.5vw
+        // Now uses actual image width after load, and positions with percentages
+        function gridPosition(idx, perRow = 10, imgW = 180, imgH = 180) { // Increased default size
+            // Calculate margin so that 10 images + 11 margins fill 100% width
+            const containerW = container.offsetWidth || window.innerWidth;
             const totalImgWidth = imgW * perRow;
-            const margin = (vw - totalImgWidth) / (perRow + 1);
+            const margin = (containerW - totalImgWidth) / (perRow + 1);
             const x = margin + (idx % perRow) * (imgW + margin);
-            const y = 80 + Math.floor(idx / perRow) * (imgW + margin); // 80px below fixed text
-            return [x, y];
+            const y = 80 + Math.floor(idx / perRow) * (imgH + margin); // 80px below fixed text
+            // Return as percentages for left/top
+            return [
+                (x / containerW) * 100,
+                y // keep y in px for vertical stacking
+            ];
         }
 
         // Store per-image scale
         const imageScales = [];
+
+        // Wait until all images are loaded before showing the container
+        let loadedCount = 0;
+        function showContainerWhenReady() {
+            loadedCount++;
+            if (loadedCount === images.length) {
+                container.style.visibility = 'visible';
+            }
+        }
 
         // Create and position images
         images.forEach((src, idx) => {
@@ -94,13 +165,31 @@
             img.alt = `Drawing ${idx+1}`;
             img.className = 'draggable-img';
             img.setAttribute('draggable', 'false');
-            const [x, y] = gridPosition(idx);
-            img.style.left = x + 'px';
-            img.style.top = y + 'px';
             img.dataset.idx = idx;
             img.dataset.scale = 1;
             imageScales[idx] = 1;
             container.appendChild(img);
+
+            // Make images bigger by default
+            img.style.width = '180px';
+            img.style.height = 'auto';
+
+            img.onload = showContainerWhenReady;
+            img.onerror = showContainerWhenReady;
+
+            // Responsive: for small screens, don't set absolute position
+            if (window.innerWidth > 900) {
+                img.onload = function() {
+                    const imgW = 180; // Use bigger width for positioning
+                    const imgH = img.naturalHeight ? img.naturalHeight * (imgW / img.naturalWidth) : 180;
+                    const [xPercent, yPx] = gridPosition(idx, 10, imgW, imgH);
+                    img.style.position = 'absolute';
+                    img.style.left = xPercent + '%';
+                    img.style.top = yPx + 'px';
+                    showContainerWhenReady();
+                };
+                img.onerror = showContainerWhenReady;
+            }
 
             // Individual image zoom (mouse wheel)
             img.addEventListener('wheel', function(e) {
@@ -155,8 +244,7 @@
             draggingImg.classList.add('dragging');
             draggingImg.style.zIndex = 1000;
             const scale = getScale(img);
-            const imgLeft = parseFloat(img.style.left) || 0;
-            const imgTop = parseFloat(img.style.top) || 0;
+
             let clientX, clientY;
             if (e.type.startsWith('touch')) {
                 clientX = e.touches[0].clientX;
@@ -165,9 +253,18 @@
                 clientX = e.clientX;
                 clientY = e.clientY;
             }
-            // Offset in image coordinates (unscaled)
-            offsetX = (clientX - imgLeft) / scale;
-            offsetY = (clientY - imgTop) / scale;
+
+            // Get the current position of the image in the viewport
+            const rect = img.getBoundingClientRect();
+            // Calculate offset between pointer and image's top-left corner
+            offsetX = clientX - rect.left;
+            offsetY = clientY - rect.top;
+
+            // Set absolute positioning and keep current visual position
+            img.style.position = 'absolute';
+            img.style.left = rect.left + window.scrollX + 'px';
+            img.style.top = rect.top + window.scrollY + 'px';
+
             e.preventDefault();
         }
 
@@ -181,12 +278,9 @@
                 clientX = e.clientX;
                 clientY = e.clientY;
             }
-            const scale = getScale(draggingImg);
-            // Set new position so pointer stays at same spot on image
-            let x = clientX - offsetX * scale;
-            let y = clientY - offsetY * scale;
-            draggingImg.style.left = x + 'px';
-            draggingImg.style.top = y + 'px';
+            // Move image so pointer stays at the same offset
+            draggingImg.style.left = (clientX - offsetX) + 'px';
+            draggingImg.style.top = (clientY - offsetY) + 'px';
             e.preventDefault();
         }
 
