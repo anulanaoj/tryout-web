@@ -49,7 +49,7 @@ body {
 
 #fullscreen-content {
   margin-top: 30px;
-  margin-left: 30vw;
+  margin-left: 20vw; /* was 30vw, now 20vw to move images 10% to the left */
   width: 80vw;
   max-width: 1200px;
   height: 80vh;
