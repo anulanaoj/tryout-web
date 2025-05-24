@@ -74,8 +74,9 @@ body {
 }
 
 .fullscreen-gallery-img {
-  width: 80vw;
-  max-width: 1200px;
+  width: auto;
+  max-width: 80vw;
+  height: auto;
   max-height: 80vh;
   background: #22222200;
   cursor: pointer;
@@ -85,6 +86,10 @@ body {
   border: none;
   box-shadow: none;
   transition: box-shadow 0.2s;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  object-fit: contain; /* ensures aspect ratio is preserved */
 }
 
 /* Only show red box-shadow on hover */
