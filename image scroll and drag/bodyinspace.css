@@ -45,6 +45,7 @@ body {
 
 #fullscreen-overlay.hidden {
   display: none;
+  pointer-events: none; /* ensure overlay never blocks clicks when hidden */
 }
 
 #fullscreen-content {
