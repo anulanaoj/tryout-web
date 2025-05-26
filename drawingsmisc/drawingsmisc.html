@@ -231,7 +231,7 @@
         });
 
         // Drag and drop logic for mouse and touch
-        let draggingImg = null, offsetX = 0, offsetY = 0;
+        let draggingImg = null, offsetX = 0, offsetY = 0, imgStartLeft = 0, imgStartTop = 0, dragStartX = 0, dragStartY = 0;
 
         function getScale(img) {
             return parseFloat(img.dataset.scale) || 1;
@@ -243,27 +243,24 @@
             draggingImg = img;
             draggingImg.classList.add('dragging');
             draggingImg.style.zIndex = 1000;
-            const scale = getScale(img);
 
-            let clientX, clientY;
-            if (e.type.startsWith('touch')) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-
-            // Get the current position of the image in the viewport
+            // For all layouts, get the current position of the image in the document
             const rect = img.getBoundingClientRect();
-            // Calculate offset between pointer and image's top-left corner
-            offsetX = clientX - rect.left;
-            offsetY = clientY - rect.top;
+            imgStartLeft = rect.left + window.scrollX;
+            imgStartTop = rect.top + window.scrollY;
+
+            if (e.type.startsWith('touch')) {
+                dragStartX = e.touches[0].clientX;
+                dragStartY = e.touches[0].clientY;
+            } else {
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+            }
 
             // Set absolute positioning and keep current visual position
             img.style.position = 'absolute';
-            img.style.left = rect.left + window.scrollX + 'px';
-            img.style.top = rect.top + window.scrollY + 'px';
+            img.style.left = imgStartLeft + 'px';
+            img.style.top = imgStartTop + 'px';
 
             e.preventDefault();
         }
@@ -278,9 +275,9 @@
                 clientX = e.clientX;
                 clientY = e.clientY;
             }
-            // Move image so pointer stays at the same offset
-            draggingImg.style.left = (clientX - offsetX) + 'px';
-            draggingImg.style.top = (clientY - offsetY) + 'px';
+            // Move image so pointer stays at the same offset from drag start
+            draggingImg.style.left = (imgStartLeft + (clientX - dragStartX)) + 'px';
+            draggingImg.style.top = (imgStartTop + (clientY - dragStartY)) + 'px';
             e.preventDefault();
         }
 
