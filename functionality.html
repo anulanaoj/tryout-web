@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Modal Demo</title>
+  <style>
+    body {
+      min-height: 2000px;
+      margin: 0;
+      font-family: sans-serif;
+    }
+    .content {
+      margin-top: 600px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+    img.demo-img {
+      width: 90%;
+      max-width: 400px;
+      margin: 0 auto;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #0002;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    img.demo-img:hover {
+      box-shadow: 0 0 24px #0005;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      z-index: 9999;
+      cursor: default;
+      display: block;
+    }
+    .modal-img {
+      position: absolute;
+      border-radius: 8px;
+      box-shadow: 0 0 20px #0008;
+      transition: all 0.3s cubic-bezier(.4,2,.6,1);
+      will-change: transform, width, height, top, left;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <p style="padding:32px;">Scroll down and click the image to see the modal overlay effect.</p>
+  <div class="content">
+    <!-- Images are now stacked vertically in a column -->
+    <img 
+      src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600"
+      alt="Demo"
+      class="demo-img"
+      id="main-img"
+    />
+    <img 
+      src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=600"
+      alt="Demo 2"
+      class="demo-img"
+      id="main-img-2"
+    />
+    <img 
+      src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=600"
+      alt="Demo 3"
+      class="demo-img"
+      id="main-img-3"
+    />
+  </div>
+
+  <script>
+    // Support multiple images
+    document.querySelectorAll('.demo-img').forEach(img => {
+      img.addEventListener('click', function() {
+        const rect = img.getBoundingClientRect();
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+
+        // Create modal image
+        const modalImg = document.createElement('img');
+        modalImg.src = img.src;
+        modalImg.alt = img.alt;
+        modalImg.className = 'modal-img';
+
+        // Set initial position and size
+        modalImg.style.top = (rect.top + scrollTop) + 'px';
+        modalImg.style.left = (rect.left + scrollLeft) + 'px';
+        modalImg.style.width = rect.width + 'px';
+        modalImg.style.height = rect.height + 'px';
+        modalImg.style.transform = 'none';
+
+        overlay.appendChild(modalImg);
+        document.body.appendChild(overlay);
+
+        // Close modal on overlay click
+        overlay.addEventListener('click', () => {
+          overlay.remove();
+        });
+      });
+    });
+  </script>
+</body>
+</html>
